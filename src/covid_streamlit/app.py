@@ -1,21 +1,27 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
 df_raw = pd.read_excel("https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide-2020-03-23.xlsx")
+df_raw.rename(columns={"Countries and territories": 'country'}, inplace=True)
 
 st.title('COVID-19 Exploration Dashboard')
 
-st.write("RAW DATA")
-st.write(df_raw)
+if st.checkbox('Show raw data'):
+    st.write(df_raw)
 
 ## VISUALS
 
 # Plot cases and deaths/pop per country over time (day)
-df = px.data.gapminder()
-fig = px.scatter(df, x="gdpPercap", y="lifeExp", animation_frame="year", animation_group="country",
-           size="pop", color="continent", hover_name="country", facet_col="continent",
-           log_x=True, size_max=45, range_x=[100,100000], range_y=[25,90])
+df_plot = df_raw.loc[(df_raw['country'].isin(['Netherlands', 'Germany', 'Italy', 'China'])) & \
+                    (df_raw['Cases'] >= 0) & \
+                    (df_raw['Month'] == 3)].sort_values('Day', ascending=True)
+
+fig = px.scatter(df_plot, x="Cases", y="Deaths", animation_frame="Day", animation_group="country",
+           size="Cases", color="country", hover_name="country", facet_col="country",
+           log_x=False, size_max=45, range_x=[0,10000], range_y=[0,1000])
+
 st.write(fig)
 
 ## PREDICTIONS
